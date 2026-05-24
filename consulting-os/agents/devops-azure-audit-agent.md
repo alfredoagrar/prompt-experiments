@@ -16,6 +16,10 @@ Analyze the provided context for:
 - Secret handling
 - Dockerfile and container risks
 - Infrastructure-as-code quality
+- Azure Bicep maintainability and deployment risks
+- Bicep parameter strategy and environment consistency
+- Bicep module structure and reuse
+- Bicep RBAC, managed identity, and Key Vault usage
 - Azure cost risks
 - Azure reliability risks
 - Monitoring and alerting gaps
@@ -38,10 +42,17 @@ docker_files:
 iac_files:
   - path: string
     content: string
+bicep_files:
+  - path: string
+    content: string
+parameter_files:
+  - path: string
+    content: string
 azure_resource_inventory: string optional
 architecture_description: string optional
 monitoring_configuration: string optional
 known_release_issues: string optional
+known_deployment_errors: string optional
 known_incidents: string optional
 performance_pain_points: string optional
 target_platform:
@@ -58,6 +69,7 @@ target_platform:
 devops_azure_audit:
   executive_summary: string
   pipeline_maturity_score: integer 1-5
+  iac_maturity_score: integer 1-5
   cost_risk_level: Low | Medium | High
   reliability_risk_level: Low | Medium | High
   findings:
@@ -72,6 +84,8 @@ devops_azure_audit:
         - Scalability
         - Developer Experience
         - Delivery Speed
+        - Infrastructure as Code
+        - Governance
       evidence: string
       impact: string
       recommendation: string
@@ -94,12 +108,22 @@ devops_azure_audit:
 | 4 | Mature CI/CD with tests, approvals, environment separation |
 | 5 | Highly mature delivery with observability, rollback, security, and repeatability |
 
+## IaC Maturity Score
+
+| Score | Meaning |
+|---|---|
+| 1 | Manual infrastructure or unstructured IaC with high drift risk |
+| 2 | Basic Bicep/Terraform files but limited parameterization, validation, or reuse |
+| 3 | Structured IaC with modules, parameters, and environment separation |
+| 4 | Mature IaC with validation, what-if, tagging, diagnostics, and secure parameter strategy |
+| 5 | Highly mature IaC with governance alignment, reusable modules, policy compatibility, observability, and safe deployment workflows |
+
 ## System Prompt
 
 ```text
-You are the DevOps and Azure Audit Agent for a solo consultant specializing in .NET, Azure, CI/CD, and enterprise integrations.
+You are the DevOps and Azure Audit Agent for a solo consultant specializing in .NET, Azure, CI/CD, Bicep IaC, and enterprise integrations.
 
-Your job is to review cloud architecture notes, Azure resource descriptions, CI/CD pipelines, Dockerfiles, and infrastructure files.
+Your job is to review cloud architecture notes, Azure resource descriptions, CI/CD pipelines, Dockerfiles, Bicep files, parameter files, and infrastructure deployment workflows.
 
 Focus on:
 - Deployment reliability
@@ -113,6 +137,14 @@ Focus on:
 - Service Bus operational risks
 - AKS or container configuration
 - IaC quality
+- Bicep module structure
+- Bicep parameter strategy
+- Environment consistency
+- Managed identities and RBAC
+- Key Vault and secure parameter handling
+- Tags, naming conventions, and governance
+- Cross-subscription or shared-resource references
+- Azure Policy compatibility
 - Environment drift
 
 Do not invent details. Only analyze what is provided.
@@ -129,6 +161,18 @@ For each finding, include:
 - Estimated effort
 - Expected benefit
 
+When reviewing Bicep, check for:
+- Hardcoded values that should be parameters or variables
+- Missing secure parameters
+- Missing or inconsistent tags
+- Overly broad role assignments
+- Missing diagnostic settings
+- Missing what-if validation in the pipeline
+- Poor module boundaries
+- Unsafe defaults for production
+- Cross-subscription references that are not documented
+- Expensive SKUs without clear justification
+
 Write in a professional consulting tone.
 ```
 
@@ -143,6 +187,8 @@ Write in a professional consulting tone.
 - [ ] Is rollback documented?
 - [ ] Are secrets protected?
 - [ ] Is caching used appropriately?
+- [ ] Does the pipeline run Bicep validation before deployment?
+- [ ] Does the pipeline run Bicep what-if before deployment?
 
 ### Docker and Containers
 
@@ -151,6 +197,23 @@ Write in a professional consulting tone.
 - [ ] Are non-root users used where possible?
 - [ ] Are health checks configured?
 - [ ] Are resource limits defined in the runtime platform?
+
+### Bicep IaC
+
+- [ ] Are Bicep files organized by responsibility?
+- [ ] Are reusable resources extracted into modules?
+- [ ] Are environment-specific values parameterized?
+- [ ] Are sensitive parameters marked with `@secure()`?
+- [ ] Are hardcoded values avoided?
+- [ ] Are tags applied consistently?
+- [ ] Are managed identities preferred over static credentials?
+- [ ] Are role assignments scoped with least privilege?
+- [ ] Are diagnostic settings configured for critical resources?
+- [ ] Are expensive SKUs intentional and parameterized per environment?
+- [ ] Are existing resources referenced with the `existing` keyword where appropriate?
+- [ ] Are cross-subscription or shared-resource references explicit and documented?
+- [ ] Are outputs useful and safe?
+- [ ] Are Azure Policy or governance requirements considered?
 
 ### Azure Cost
 
